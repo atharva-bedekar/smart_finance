@@ -1,0 +1,56 @@
+// database/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id           String        @id @default(uuid())
+  name         String
+  email        String        @unique
+  password     String
+  currency     String        @default("₹")
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt      @map("updated_at")
+  transactions Transaction[]
+  budgets      Budget[]
+
+  @@map("users")
+}
+
+model Transaction {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  type      String   // "income" | "expense"
+  category  String
+  amount    Float
+  note      String?
+  date      DateTime 
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt      @map("updated_at")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([date])
+  @@map("transactions")
+}
+
+model Budget {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  category  String
+  amount    Float
+  month     String   // "YYYY-MM"
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt      @map("updated_at")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, category, month])
+  @@index([userId, month])
+  @@map("budgets")
+}
