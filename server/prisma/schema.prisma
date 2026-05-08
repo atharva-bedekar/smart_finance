@@ -1,22 +1,22 @@
-// database/schema.prisma
-
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model User {
   id           String        @id @default(uuid())
-  name         String
   email        String        @unique
   password     String
-  currency     String        @default("₹")
-  createdAt    DateTime      @default(now()) @map("created_at")
-  updatedAt    DateTime      @updatedAt      @map("updated_at")
+  name         String
+  currency     String        @default("INR")
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
   transactions Transaction[]
   budgets      Budget[]
 
@@ -24,33 +24,29 @@ model User {
 }
 
 model Transaction {
-  id        String   @id @default(uuid())
-  userId    String   @map("user_id")
-  type      String   // "income" | "expense"
-  category  String
-  amount    Float
-  note      String?
-  date      DateTime 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt      @map("updated_at")
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type        String
+  amount      Float
+  category    String
+  description String?
+  date        DateTime @default(now())
+  createdAt   DateTime @default(now())
 
-  @@index([userId])
-  @@index([date])
   @@map("transactions")
 }
 
 model Budget {
   id        String   @id @default(uuid())
-  userId    String   @map("user_id")
-  category  String
-  amount    Float
-  month     String   // "YYYY-MM"
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt      @map("updated_at")
+  userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category  String
+  limit     Float
+  month     Int
+  year      Int
+  createdAt DateTime @default(now())
 
-  @@unique([userId, category, month])
-  @@index([userId, month])
+  @@unique([userId, category, month, year])
   @@map("budgets")
 }
