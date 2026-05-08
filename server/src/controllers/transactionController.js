@@ -36,7 +36,7 @@ exports.create = async (req, res, next) => {
   try {
     const { type, category, amount, note, date } = req.body;
     const tx = await prisma.transaction.create({
-      data: { userId: req.user.id, type, category, amount: parseFloat(amount), note, date: new Date(date) },
+      data: { userId: req.user.id, type, category, amount: parseFloat(amount), description: note, date: new Date(date) },
     });
     res.status(201).json(tx);
   } catch (err) { next(err); }
@@ -48,7 +48,7 @@ exports.update = async (req, res, next) => {
     const { type, category, amount, note, date } = req.body;
     const tx = await prisma.transaction.updateMany({
       where: { id: req.params.id, userId: req.user.id },
-      data:  { type, category, amount: parseFloat(amount), note, date: new Date(date) },
+      data:  { type, category, amount: parseFloat(amount), description: note, date: new Date(date) },
     });
     if (tx.count === 0) return res.status(404).json({ error: "Transaction not found" });
     const updated = await prisma.transaction.findUnique({ where: { id: req.params.id } });

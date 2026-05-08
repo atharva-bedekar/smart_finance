@@ -23,7 +23,8 @@ async function buildContext(userId) {
     prisma.budget.findMany({
       where: {
         userId,
-        month: `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`,
+        month: now.getMonth() + 1,
+        year: now.getFullYear(),
       },
     }),
   ]);
