@@ -31,7 +31,7 @@ export default function BudgetPage() {
       api.get("/transactions", { params: { month, type:"expense" } }),
     ]);
     const b = {};
-    bRes.data.forEach(x => { b[x.category] = x.amount; });
+    bRes.data.forEach(x => { b[x.category] = x.limit; });
     setBudgets(b);
     const s = {};
     tRes.data.transactions.forEach(t => { s[t.category] = (s[t.category]||0) + t.amount; });

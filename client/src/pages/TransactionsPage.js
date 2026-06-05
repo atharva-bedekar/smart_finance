@@ -21,6 +21,7 @@ export default function TransactionsPage() {
   const [editItem,setEditItem]= useState(null);
   const [form, setForm]       = useState({ type:"expense", category:"Food", amount:"", note:"", date: today() });
   const [saving, setSaving]   = useState(false);
+  const [error,  setError]    = useState("");
 
   function today() { return new Date().toISOString().split("T")[0]; }
 
@@ -42,13 +43,15 @@ export default function TransactionsPage() {
   const openEdit = (t) => { setEditItem(t); setForm({ type:t.type, category:t.category, amount:String(t.amount), note:t.note||"", date:t.date.split("T")[0] }); setShowForm(true); };
 
   const handleSubmit = async () => {
-    if (!form.amount || !form.date) return;
-    setSaving(true);
+    if (!form.amount || !form.date) { setError("Amount and date are required."); return; }
+    setSaving(true); setError("");
     const body = { ...form, amount: parseFloat(form.amount) };
     try {
       if (editItem) await api.put(`/transactions/${editItem.id}`, body);
       else          await api.post("/transactions", body);
       setShowForm(false); setEditItem(null); load();
+    } catch (e) {
+      setError(e.response?.data?.error || "Failed to save transaction.");
     } finally { setSaving(false); }
   };
 
@@ -107,6 +110,7 @@ export default function TransactionsPage() {
             <input value={form.note} onChange={e=>setForm(f=>({...f,note:e.target.value}))}
               placeholder="Note" style={I} />
           </div>
+          {error && <div style={{ color:"#ef4444", fontSize:13, marginTop:10 }}>{error}</div>}
           <div style={{ display:"flex", gap:10, marginTop:14 }}>
             <button onClick={handleSubmit} disabled={saving} style={{ padding:"9px 20px", background:"var(--accent)",
               color:"#fff", border:"none", borderRadius:8, fontSize:14, fontWeight:600, cursor:"pointer" }}>
